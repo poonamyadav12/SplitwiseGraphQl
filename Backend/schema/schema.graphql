@@ -1,0 +1,326 @@
+scalar Date
+
+enum RegistrationStatus {
+  INVITED
+  JOINED
+}
+
+enum TransactionStatus {
+  ACTIVE
+  DELETED
+}
+
+type User {
+  email: String!
+  first_name: String!
+  last_name: String
+  avatar: String!
+  password: String!
+  _id: String!
+  country_code: String
+  default_currency: String
+  registration_status: RegistrationStatus!
+  time_zone: String
+  created_at: Date
+  updated_at: Date
+  phone_number: String
+}
+
+type GroupUser {
+  email: String!
+  first_name: String!
+  last_name: String
+  avatar: String!
+  password: String!
+  _id: String!
+  country_code: String
+  default_currency: String
+  registration_status: RegistrationStatus!
+  time_zone: String
+  created_at: Date
+  updated_at: Date
+  phone_number: String
+  group_join_status: String
+}
+
+type Group {
+  id: String!
+  creator: String!
+  name: String!
+  avatar: String!
+  members: [GroupUser!]
+}
+
+type Comment {
+  _id: String!
+  comment: String!
+  user: User!
+  createdAt: String!
+}
+
+type TransactionGroup {
+  id: String!
+  creator: String!
+  name: String!
+  avatar: String!
+  members: [String!]
+}
+
+type Transaction {
+  from: User!
+  to: [User!]
+  amount: Float!
+  currency_code: String!
+  id: String!
+  group_id: String!
+  group: TransactionGroup!
+  description: String
+  status: TransactionStatus
+  type: String
+  createdAt: Date!
+  updated_at: Date!
+  comments: [Comment!]
+}
+
+type ActivityGroup {
+  id: String!
+  creator: String!
+  name: String!
+  avatar: String!
+  members: [String!]
+}
+
+type TransactionActivity {
+  from: String!
+  to: [String!]
+  amount: Float!
+  currency_code: String!
+  id: String!
+  group_id: String!
+  description: String
+  type: String
+}
+
+type Activity {
+  _id: String!
+  user_id: String!
+  group: ActivityGroup!
+  added: User
+  joined: User
+  deleted: User
+  transaction: TransactionActivity
+  type: String!
+  creator: User!
+  created_at: Date!
+  updated_at: Date!
+}
+
+input SignupUser {
+  email: String!
+  first_name: String!
+  last_name: String
+  password: String!
+  avatar: String!
+  country_code: String
+  default_currency: String!
+  registration_status: RegistrationStatus!
+  time_zone: String
+  phone_number: String
+}
+
+type Error {
+  error: [String]
+}
+
+type SignupSuccess {
+  user: User!
+  token: String!
+}
+
+union SignupResult = SignupSuccess | Error
+
+type LoginSuccess {
+  user: User!
+  token: String!
+}
+
+union LoginResult = LoginSuccess | Error
+
+input UpdateUser {
+  email: String!
+  first_name: String!
+  last_name: String
+  password: String!
+  avatar: String!
+  country_code: String
+  default_currency: String!
+  registration_status: RegistrationStatus
+  time_zone: String
+  phone_number: String
+  new_password: String
+  _id: String
+}
+
+type UpdateUserSuccess {
+  user: User!
+}
+union UpdateUserResult = UpdateUserSuccess | Error
+
+input InvitedUserInput {
+  first_name: String
+  last_name: String
+  picture: String
+  email: String!
+  registration_status: String
+  group_join_status: String
+}
+
+input CreateGroupInput {
+  creator: String!
+  name: String!
+  avatar: String!
+  members: [InvitedUserInput!]
+}
+
+type CreateGroupSuccess {
+  group: Group!
+}
+
+union CreateGroupResult = CreateGroupSuccess | Error
+
+input UpdateGroupInput {
+  id: String!
+  _id: String
+  creator: String!
+  name: String!
+  avatar: String!
+  members: [InvitedUserInput!]
+}
+
+type UpdateGroupSuccess {
+  group: Group!
+}
+
+union UpdateGroupResult = UpdateGroupSuccess | Error
+
+input CommentInput {
+  comment: String!
+  userId: String!
+}
+
+input TransactionInput {
+  id: String
+  from: String!
+  to: [String]!
+  amount: Float!
+  currency_code: String!
+  group_id: String!
+  description: String!
+  status: String!
+  type: String!
+  comments: [CommentInput]
+}
+
+input CommentInput {
+  txnId: String!
+  comment: String!
+  userId: String!
+}
+
+type Success {
+  success: String
+}
+
+union CreateTransactionResult = Success | Error
+
+union UpdateTransactionResult = Success | Error
+
+union SettleUpTransactionResult = Success | Error
+
+union JoinGroupResult = Success | Error
+
+union LeaveGroupResult = Success | Error
+
+union AddCommentResult = Transaction | Error
+
+union DeleteCommentResult = Success | Error
+
+type Mutation {
+  signup(user: SignupUser!): SignupResult!
+  login(id: String!, password: String!): LoginResult!
+  updateUser(user: UpdateUser!): UpdateUserResult!
+  createGroup(group: CreateGroupInput!): CreateGroupResult!
+  updateGroup(group: UpdateGroupInput!): UpdateGroupResult!
+  joinGroup(groupId: String!, userId: String!): JoinGroupResult!
+  leaveGroup(groupId: String!, userId: String!): LeaveGroupResult!
+  createTransaction(transaction: TransactionInput!): CreateTransactionResult!
+  updateTransaction(transaction: TransactionInput!): UpdateTransactionResult!
+  settleUpTransaction(
+    transactions: [TransactionInput!]!
+  ): SettleUpTransactionResult!
+  addComment(body: CommentInput!): AddCommentResult!
+  deleteComment(_id: String!): DeleteCommentResult!
+}
+
+union GetGroupResult = Group | Error
+
+union GetUserResult = User | Error
+
+type GroupList {
+  groups: [Group!]
+}
+
+union GetGroupListResult = GroupList | Error
+
+type TransactionList {
+  transactions: [Transaction!]
+}
+
+type UserList {
+  users: [User!]
+}
+
+union GetGroupTransactionsResult = TransactionList | Error
+
+union GetUserTransactionsResult = TransactionList | Error
+
+union GetFriendTransactionsResult = TransactionList | Error
+
+union SearchUserResult = UserList | Error
+
+type PaginatedActivityList {
+  docs: [Activity!]
+  totalDocs: Float
+  totalPages: Float
+  hasPrevPage: Boolean
+  hasNextPage: Boolean
+}
+
+union GetActivityResult = PaginatedActivityList | Error
+
+input ActivityOptions {
+  pageIndex: Float
+  pageSize: Float
+  groupName: String
+  sortBy: String
+  sortOrder: String
+}
+
+type Query {
+  getUser(email: String!): GetUserResult!
+  getGroup(id: String!): GetGroupResult!
+  getGroupList(userId: String!): GetGroupListResult!
+  getGroupTransactions(groupId: String!): GetGroupTransactionsResult!
+  getUserTransactions(userId: String!): GetUserTransactionsResult!
+  getFriendTransactions(
+    friendId: String!
+    userId: String!
+  ): GetFriendTransactionsResult!
+  searchUser(queryString: String!, limit: Float!): SearchUserResult
+  getActivity(userId: String!, options: ActivityOptions): GetActivityResult
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+}
